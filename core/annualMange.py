@@ -1,6 +1,8 @@
 import aiosqlite
 from .model.memberModel import MemberModel
 
+ANNUAL_START_COUNT = 25
+
 class AnnualManage:
 
     def __init__(self, dbPath: str) -> None:
@@ -83,8 +85,8 @@ class AnnualManage:
         cursor = await self.db.execute(query, (userId, ))
         record = await cursor.fetchall()
         await cursor.close()
-        
-        return 25-len(record)
+
+        return ANNUAL_START_COUNT-len(record)
     
 
         
