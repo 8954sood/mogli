@@ -38,6 +38,7 @@ class AnnualManage:
             '''
         )
         await self.db.commit()
+        self.db.row_factory = aiosqlite.Row
     
     async def disconnect(self) -> None:
         await self.db.close()
@@ -98,7 +99,7 @@ class AnnualManage:
         record = await cursor.fetchone()
         await cursor.close()
         
-        return MemberModel(record[0], record[1])
+        return MemberModel(record["id"], record["name"])
     
     async def getUserAnnual(self, userId: int, **args) -> int:
         '''
@@ -114,8 +115,7 @@ class AnnualManage:
         await cursor.close()
         sum = 0
         for i in record:
-            sum += i[2] # annualCnt
-
+            sum += i["annual_cnt"] # annualCnt
 
         return ANNUAL_START_COUNT-sum
 
