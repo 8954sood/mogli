@@ -37,6 +37,61 @@ class Annual(commands.GroupCog, name="annual"):
             ),
             ephemeral=False,
         )
+
+    @app_commands.command(name="연차사용")
+    async def use_annaul_command(self, interaction: discord.Interaction):
+        db = self.db
+        class AnnualModal(discord.ui.Modal, title='연차 사용'):
+            annual = discord.ui.TextInput(
+                label="언제 연차를 사용하실건가요?",
+                placeholder="8,9",
+            )
+
+            reason = discord.ui.TextInput(
+                label="연차를 사용하는 사유를 적어주세요.",
+                style=discord.TextStyle.long,
+                placeholder="대회에 결과물을 제출하기전 회의가 꼭 필요해 연차를 신청합니다.",
+                max_length=300,
+                min_length=10
+            )
+
+            async def on_submit(self, interaction: discord.Interaction):
+                annualCnt = len(list(map(int, self.annual.value.split(","))))
+
+                isSuccess, cause = await db.insertUerAnnual(
+                    userId=interaction.user.id,
+                    annual=self.annual.value,
+                    annualCnt=annualCnt,
+                    reason=self.reason.value
+                )
+                
+                if (isSuccess is True):
+                    await interaction.response.send_message(
+                        embed=discord.Embed(
+                            title="연차 사용 성공",
+                            description=f"연차 {annualCnt}개를 소모하였습니다.",
+                            colour=discord.Colour.green()
+                        )
+                    )
+                else:
+                    await interaction.response.send_message(
+                        embed=discord.Embed(
+                            title="연차 사용 실패",
+                            description=f"사유: {cause}",
+                            colour=discord.Colour.red()
+                        )
+                    )
+
+            async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+                await interaction.response.send_message(
+                        embed=discord.Embed(
+                            title="연차 사용 실패",
+                            description=f"사유: {error}",
+                            colour=discord.Colour.red()
+                        )
+                    )
+                print(error)
+        await interaction.response.send_modal(AnnualModal())
     
 async def setup(bot: commands.Bot) -> None:
   await bot.add_cog(Annual(bot))
