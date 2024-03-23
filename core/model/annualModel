@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import datetime
 
 @dataclass
 class AnnualModel:
@@ -6,3 +7,4 @@ class AnnualModel:
     annual: str
     reason: str
     userId: int
+    createdAt: datetime.datetime

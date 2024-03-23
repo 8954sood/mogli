@@ -1,7 +1,11 @@
 import aiosqlite
-from .model.memberModel import MemberModel
+from typing import Union, Optional
+import datetime
 
+from .model.memberModel import MemberModel
 ANNUAL_START_COUNT = 25
+TABLE_MEMBER = "members"
+TABLE_ANNUAL = "annuals"
 
 class AnnualManage:
 
@@ -12,20 +16,21 @@ class AnnualManage:
     async def __ainit__(self) -> None:
         self.db = await aiosqlite.connect(self.dbPath)
         await self.db.execute(
-            '''
-            CREATE TABLE IF NOT EXISTS members  (
+            f'''
+            CREATE TABLE IF NOT EXISTS {TABLE_MEMBER}  (
             id INTEGER PRIMARY KEY,
             name VARCHAR(255)
             );
             '''
         )
         await self.db.execute(
-            '''
-            CREATE TABLE IF NOT EXISTS annuals  (
-            id INTEGER PRIMARY KEY,
+            f'''
+            CREATE TABLE IF NOT EXISTS {TABLE_ANNUAL}  (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             annual INTEGER NOT NULL,
             reason VARCHAR(255) NOT NULL,
             user_id INTEGER,
+            createdAt TIMESTAMP,
             FOREIGN KEY (user_id)
                 REFERENCES members (user_id) 
             );
@@ -40,15 +45,15 @@ class AnnualManage:
         print(self.db)
         return "qq"
     
-    async def insertUser(self, userId: int, name: str = None, **args) -> None:
+    async def insertUser(self, userId: int, name: Optional[str] = None, **args) -> None:
         '''
         유저가 생성하는 함수입니다.
         '''
         checking = await self.checkUser(userId)
         if (checking is True):
             return
-        query = '''
-                INSERT INTO members(
+        query = f'''
+                INSERT INTO {TABLE_MEMBER}(
                 id,
                 name
                 )
@@ -63,8 +68,8 @@ class AnnualManage:
         '''
         유저가 존재하는지 확인하는 함수입니다.
         '''
-        query = '''
-                SELECT * FROM members WHERE id=?
+        query = f'''
+                SELECT * FROM {TABLE_MEMBER} WHERE id=?
                 '''
         cursor = await self.db.execute(query, (userId, ))
         record = await cursor.fetchone()
@@ -83,10 +88,10 @@ class AnnualManage:
         '''
         유저에 대한 정보를 얻어오는 함수입니다.
         '''
-        if (await self.checkUser(userId) is False):
-            await self.insertUser(userId)
-        query = '''
-                SELECT * FROM members WHERE id=?
+        await self.makeUser(userId) 
+
+        query = f'''
+                SELECT * FROM {TABLE_MEMBER} WHERE id=?
                 '''
         cursor = await self.db.execute(query, (userId, ))
         record = await cursor.fetchone()
@@ -98,10 +103,10 @@ class AnnualManage:
         '''
         유저의 연차 개수를 얻어오는 함수입니다.
         '''
-        if (await self.checkUser(userId) is False):
-            await self.insertUser(userId)
-        query = '''
-                SELECT * FROM annuals WHERE user_id=?
+        await self.makeUser(userId)
+        
+        query = f'''
+                SELECT * FROM {TABLE_ANNUAL} WHERE user_id=?
                 '''
         cursor = await self.db.execute(query, (userId, ))
         record = await cursor.fetchall()
@@ -111,7 +116,32 @@ class AnnualManage:
             sum += i[1]
 
 
-        return ANNUAL_START_COUNT-len(sum)
+        return ANNUAL_START_COUNT-sum
+
+        
+    async def insertUerAnnual(self, userId: int, annual: int, reason: str, **args) -> tuple[bool, Optional[str]]:
+        '''
+        연차를 작성하는 함수입니다.
+        '''
+        await self.makeUser(userId)
+
+        count = await self.getUserAnnual(userId)
+        if (count-annual <= 0):
+            return False, "현재 연차의 개수보다 많은 양을 사용하려고 시도하였습니다."
+        
+        query = f'''
+                INSERT INTO {TABLE_ANNUAL}(
+                annual,
+                reason,
+                user_id,
+                createdAt
+                )
+                VALUES(?, ?, ?, ?)
+                '''
+        cursor = await self.db.execute(query, (annual, reason, userId, datetime.datetime.now()))
+        await cursor.close()
+        await self.db.commit()
+        return True, None
 
         
 
