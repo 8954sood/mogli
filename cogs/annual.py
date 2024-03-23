@@ -4,6 +4,7 @@ from discord.ext import commands
 
 import asyncio
 from core.annualMange import AnnualManage
+from core.model.memberModel import MemberModel
 
 
 class Annual(commands.GroupCog, name="annual"):
@@ -25,11 +26,17 @@ class Annual(commands.GroupCog, name="annual"):
 
 
 
-    @app_commands.command(name="test")
-    async def test_command(self, interaction: discord.Interaction):
-        rr = await self.db.testServer()
-        await interaction.response.send_message(content=rr, ephemeral=False)
-        await self.db.insertUser(interaction.user.id)
+    @app_commands.command(name="정보")
+    async def info_command(self, interaction: discord.Interaction):
+        count = await self.db.getUserAnnual(interaction.user.id)
+        
+        await interaction.response.send_message(
+            embed=discord.Embed(
+                title="B1ND 연차",
+                description=f"당신의 연차는 {count}개 남았습니다."
+            ),
+            ephemeral=False,
+        )
     
 async def setup(bot: commands.Bot) -> None:
   await bot.add_cog(Annual(bot))

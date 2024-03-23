@@ -1,0 +1,8 @@
+from dataclasses import dataclass
+
+@dataclass
+class MemberModel:
+    id: int
+    time: str
+    reason: str
+    userId: int
