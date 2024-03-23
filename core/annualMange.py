@@ -27,7 +27,8 @@ class AnnualManage:
             f'''
             CREATE TABLE IF NOT EXISTS {TABLE_ANNUAL}  (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            annual INTEGER NOT NULL,
+            annual VARCHAR(255) NOT NULL,
+            annual_cnt INTEGER NOT NULL,
             reason VARCHAR(255) NOT NULL,
             user_id INTEGER,
             createdAt TIMESTAMP,
@@ -113,32 +114,33 @@ class AnnualManage:
         await cursor.close()
         sum = 0
         for i in record:
-            sum += i[1]
+            sum += i[2] # annualCnt
 
 
         return ANNUAL_START_COUNT-sum
 
         
-    async def insertUerAnnual(self, userId: int, annual: int, reason: str, **args) -> tuple[bool, Optional[str]]:
+    async def insertUerAnnual(self, userId: int, annual: str, annualCnt: int, reason: str, **args) -> tuple[bool, Optional[str]]:
         '''
         연차를 작성하는 함수입니다.
         '''
         await self.makeUser(userId)
 
         count = await self.getUserAnnual(userId)
-        if (count-annual <= 0):
+        if (count-annualCnt <= 0):
             return False, "현재 연차의 개수보다 많은 양을 사용하려고 시도하였습니다."
         
         query = f'''
                 INSERT INTO {TABLE_ANNUAL}(
                 annual,
+                annual_cnt,
                 reason,
                 user_id,
                 createdAt
                 )
-                VALUES(?, ?, ?, ?)
+                VALUES(?, ?, ?, ?, ?)
                 '''
-        cursor = await self.db.execute(query, (annual, reason, userId, datetime.datetime.now()))
+        cursor = await self.db.execute(query, (annual, annualCnt, reason, userId, datetime.datetime.now()))
         await cursor.close()
         await self.db.commit()
         return True, None
