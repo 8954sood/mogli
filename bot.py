@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import os
 import asyncio
 
+
 app = commands.Bot(
     command_prefix="!",
     intents= Intents.all(),
@@ -36,14 +37,33 @@ async def test2_coomand(interaction: discord.Interaction):
 async def reload(ctx: commands.Context):
     if (ctx.author.id != 464712715487805442):
         return
-    for filename in os.listdir("./cogs"):
-        if filename.endswith("py"):
-            # app.add
-            await app.unload_extension(f"cogs.{filename[:-3]}")
-            print(f"loaded {filename[:-3]}")
-            await app.load_extension(f"cogs.{filename[:-3]}")
-    app.tree.copy_global_to(guild=discord.Object(id=1193910645318500463)) 
-    await app.tree.sync()
+    try:
+        for filename in os.listdir("./cogs"):
+            if filename.endswith("py"):
+                # app.add
+                await app.reload_extension(f"cogs.{filename[:-3]}")
+                print(f"loaded {filename[:-3]}")
+        app.tree.copy_global_to(guild=discord.Object(id=1193910645318500463)) 
+        await app.tree.sync()
+        await ctx.send(
+            embed= discord.Embed(
+                title="리로드 성공",
+                color= discord.Color.green()
+            )
+        )
+    except Exception as Error:
+        await ctx.send(
+            embed= discord.Embed(
+                title="리로드 실패",
+                description=Error,
+                colour= discord.Colour.red()
+            )
+        )
+
+@app.command("exit")
+async def exit(ctx: commands.Context):
+    await app.close()
+
     
 app.run(
     token=os.environ.get("token")
