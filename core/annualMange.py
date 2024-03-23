@@ -24,6 +24,7 @@ class AnnualManage:
             CREATE TABLE IF NOT EXISTS annuals  (
             id INTEGER PRIMARY KEY,
             annual INTEGER NOT NULL,
+            reason VARCHAR(255) NOT NULL,
             user_id INTEGER,
             FOREIGN KEY (user_id)
                 REFERENCES members (user_id) 
@@ -40,6 +41,9 @@ class AnnualManage:
         return "qq"
     
     async def insertUser(self, userId: int, name: str = None, **args) -> None:
+        '''
+        유저가 생성하는 함수입니다.
+        '''
         checking = await self.checkUser(userId)
         if (checking is True):
             return
@@ -56,6 +60,9 @@ class AnnualManage:
         print(query)
 
     async def checkUser(self, userId: int, **args) -> bool:
+        '''
+        유저가 존재하는지 확인하는 함수입니다.
+        '''
         query = '''
                 SELECT * FROM members WHERE id=?
                 '''
@@ -64,7 +71,18 @@ class AnnualManage:
         await cursor.close()
         return record != None
     
+    
+    async def makeUser(self, userId: int):
+        '''
+        유저가 존재하는지 확인하고 없다면 유저를 생성하는 함수입니다.
+        '''
+        if (await self.checkUser(userId) is False):
+            await self.insertUser(userId)
+    
     async def getUser(self, userId: int, **args) -> MemberModel:
+        '''
+        유저에 대한 정보를 얻어오는 함수입니다.
+        '''
         if (await self.checkUser(userId) is False):
             await self.insertUser(userId)
         query = '''
@@ -77,6 +95,9 @@ class AnnualManage:
         return MemberModel(record[0], record[1])
     
     async def getUserAnnual(self, userId: int, **args) -> int:
+        '''
+        유저의 연차 개수를 얻어오는 함수입니다.
+        '''
         if (await self.checkUser(userId) is False):
             await self.insertUser(userId)
         query = '''
@@ -85,9 +106,15 @@ class AnnualManage:
         cursor = await self.db.execute(query, (userId, ))
         record = await cursor.fetchall()
         await cursor.close()
+        sum = 0
+        for i in record:
+            sum += i[1]
 
-        return ANNUAL_START_COUNT-len(record)
-    
+
+        return ANNUAL_START_COUNT-len(sum)
+
+        
+
 
         
         

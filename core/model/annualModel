@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
 @dataclass
-class MemberModel:
+class AnnualModel:
     id: int
-    time: str
+    annual: str
     reason: str
     userId: int
