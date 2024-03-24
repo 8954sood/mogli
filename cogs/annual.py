@@ -53,15 +53,25 @@ class Annual(commands.GroupCog, name="annual"):
         
 
     @app_commands.command(name="정보")
-    async def info_command(self, interaction: discord.Interaction):
-        userInfo = await self.db.getUser(
-            userId=interaction.user.id, 
-            userName=interaction.user.display_name
-        )
-        count = await self.db.getUserAnnualCount(
-            userId=interaction.user.id, 
-            userName=interaction.user.display_name
-        )
+    async def info_command(self, interaction: discord.Interaction, target: Optional[discord.User | discord.Member]):
+        if (target != None):
+            userInfo = await self.db.getUser(
+                userId=target.id, 
+                userName=target.display_name
+            )
+            count = await self.db.getUserAnnualCount(
+                userId=target.id, 
+                userName=target.display_name
+            )
+        else:
+            userInfo = await self.db.getUser(
+                userId=interaction.user.id, 
+                userName=interaction.user.display_name
+            )
+            count = await self.db.getUserAnnualCount(
+                userId=interaction.user.id, 
+                userName=interaction.user.display_name
+            )
         
         await interaction.response.send_message(
             embed=discord.Embed(
