@@ -81,33 +81,49 @@ class AnnualManage:
         return record != None
     
     
-    async def makeUser(self, userId: int):
+    async def makeUser(self, userId: int, userName: Optional[str]=None):
         '''
         유저가 존재하는지 확인하고 없다면 유저를 생성하는 함수입니다.
         '''
         if (await self.checkUser(userId) is False):
-            await self.insertUser(userId)
+            await self.insertUser(userId, userName)
     
     async def getUser(self, userId: int, **args) -> MemberModel:
         '''
         유저에 대한 정보를 얻어오는 함수입니다.
-        '''
-        await self.makeUser(userId) 
 
+        
+        Optional: userName: str | None
+        '''
+        await self.makeUser(userId, args.get("userName", None)) 
+        userName = args.get("userName", None)
         query = f'''
                 SELECT * FROM {TABLE_MEMBER} WHERE id=?
                 '''
         cursor = await self.db.execute(query, (userId, ))
         record = await cursor.fetchone()
+        
         await cursor.close()
+        if (record["name"] == None and userName != None):
+            query = f'''
+                UPDATE {TABLE_MEMBER} 
+                SET name=? 
+                WHERE id=?
+                '''
+            cursor = await self.db.execute(query, (userName , userId))
+            await cursor.close()
+            await self.db.commit()
+            return MemberModel(record["id"], userName)
         
         return MemberModel(record["id"], record["name"])
     
     async def getUserAnnualCount(self, userId: int, **args) -> int:
         '''
         유저의 연차 개수를 얻어오는 함수입니다.
+        
+        Optional: userName: str | None
         '''
-        await self.makeUser(userId)
+        await self.makeUser(userId, args.get("userName", None)) 
         
         query = f'''
                 SELECT * FROM {TABLE_ANNUAL} WHERE user_id=?
@@ -124,9 +140,11 @@ class AnnualManage:
     async def getUserAnnualAll(self, userId: int, reversed: bool = False, **args) -> List[AnnualModel]:
         '''
         유저의 연차 기록을 모두 불러오는 함수입니다.
+        
+        Optional: userName: str | None
         '''
         
-        await self.makeUser(userId)
+        await self.makeUser(userId, args.get("userName", None)) 
 
 
         query = f'''
@@ -159,6 +177,9 @@ class AnnualManage:
     async def insertUerAnnual(self, userId: int, annual: str, annualCnt: int, reason: str, **args) -> tuple[bool, Optional[str]]:
         '''
         연차를 작성하는 함수입니다.
+
+        
+        Optional: userName: str | None
         '''
         await self.makeUser(userId)
 

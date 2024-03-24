@@ -3,12 +3,12 @@ from discord import Intents, app_commands
 from discord.ext import commands
 
 import asyncio
-from core.annualMange import AnnualManage
-from core.model.memberModel import MemberModel
 import os
 from typing import Optional
 import datetime
 
+from core.annualMange import AnnualManage
+from core.model.memberModel import MemberModel
 
 class Annual(commands.GroupCog, name="annual"):
     def __init__(self, app: commands.Bot) -> None:
@@ -30,7 +30,7 @@ class Annual(commands.GroupCog, name="annual"):
     async def getLogChannel(self) -> discord.abc.GuildChannel | discord.abc.PrivateChannel | discord.Thread:
         return await self.app.fetch_channel(os.environ.get("log"))
     
-    async def sendLogChannel(self, category: str, user: Optional[discord.User | discord.Member], **args):
+    async def sendLogChannel(self, category: str, user: discord.User | discord.Member, **args):
         userInfo = await self.db.getUser(user.id)
         if (category == "연차"):
             if user == None:
@@ -40,18 +40,32 @@ class Annual(commands.GroupCog, name="annual"):
             await (await self.getLogChannel()).send(
                 embed=discord.Embed(
                     title="연차 사용 로그",
-                    description=f"사용자 : {user.mention}\n사용자ID : {user.id}\n연차 개수 : {nowAnnual+int(args['useCnt'])} -> {nowAnnual}\n시간 : {datetime.datetime.now()}"
+                    description=f'''
+                                사용자 : {user.mention}{f"({userInfo.name})" if userInfo.name != None else ""}
+                                사용자ID : {user.id}
+                                연차 개수 : {nowAnnual+int(args['useCnt'])} -> {nowAnnual}
+                                연차 사용 교시 : {args["annual"]}교시
+                                사유 : {args["reason"]}
+                                이벤트 발생 시간 : {datetime.datetime.now()}
+                                '''
                 )
             )
         
 
     @app_commands.command(name="정보")
     async def info_command(self, interaction: discord.Interaction):
-        count = await self.db.getUserAnnualCount(interaction.user.id)
+        userInfo = await self.db.getUser(
+            userId=interaction.user.id, 
+            userName=interaction.user.display_name
+        )
+        count = await self.db.getUserAnnualCount(
+            userId=interaction.user.id, 
+            userName=interaction.user.display_name
+        )
         
         await interaction.response.send_message(
             embed=discord.Embed(
-                title="B1ND 연차",
+                title=f"B1ND({userInfo.name}) 연차",
                 description=f"당신의 연차는 {count}개 남았습니다."
             ),
             ephemeral=False,
@@ -96,7 +110,9 @@ class Annual(commands.GroupCog, name="annual"):
                     await log(
                         category="연차", 
                         user=interaction.user,
-                        useCnt=annualCnt
+                        useCnt=annualCnt,
+                        reason=self.reason.value,
+                        annual=self.annual.value
                     )
                 else:
                     await interaction.response.send_message(
@@ -117,6 +133,6 @@ class Annual(commands.GroupCog, name="annual"):
                     )
                 print(error)
         await interaction.response.send_modal(AnnualModal())
-    
+
 async def setup(bot: commands.Bot) -> None:
   await bot.add_cog(Annual(bot))
