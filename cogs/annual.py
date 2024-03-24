@@ -134,5 +134,77 @@ class Annual(commands.GroupCog, name="annual"):
                 print(error)
         await interaction.response.send_modal(AnnualModal())
 
+    @commands.command("강제설정")
+    async def user_set_command(self, ctx: commands.Context, user: discord.User | discord.Member, annual: str | int):
+        ""
+        if (ctx.author.id in [464712715487805442, 809432781604126740] == False):
+            return
+        message = await ctx.send(
+            embed=discord.Embed(
+                title="작업을 진행하고 있습니다.",
+                color=discord.Color.dark_blue()
+            )
+        )
+        try:
+            admin = await self.db.getUser(
+                userId=ctx.author.id,
+                userName=ctx.author.display_name
+            )
+            userQuery = await self.db.getUser(
+                userId=user.id,
+                userName=user.display_name
+            )
+            count = await self.db.getUserAnnualCount(userId=user.id)
+
+            setAnnual = "관리자에 의한 강제 사용"
+            if isinstance(annual, str):
+                setAnnual = annual
+                annual = len(list(map(int, annual.split(","))))
+            
+            print(annual)
+            for i in range(annual):
+                await self.db.insertUerAnnual(
+                    userId=ctx.author.id,
+                    annual=setAnnual,
+                    annualCnt=1,
+                    reason="관리자에 의한 강제 사용"
+                )
+                await self.sendLogChannel(
+                    category="연차",
+                    user=user,
+                    useCnt=1,
+                    reason=f"관리자({admin.name})에 의한 강제 사용",
+                    annual=setAnnual
+                )
+                print(i)
+            await message.edit(
+                content=".",
+                embed=None
+            )
+            await message.edit(
+                content="",
+                embed=discord.Embed(
+                    title="정상적으로 처리되었습니다.",
+                    color=discord.Color.green()
+                )
+            )
+        except Exception as Error:
+            await message.edit(
+                content=".",
+                embed=None
+            )
+            await message.edit(
+                content="",
+                embed=discord.Embed(
+                    title="실패",
+                    description=f"사유 : {Error}",
+                    color=discord.Color.red()
+                )
+            )
+
+
+        
+        
+
 async def setup(bot: commands.Bot) -> None:
   await bot.add_cog(Annual(bot))
