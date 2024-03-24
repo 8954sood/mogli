@@ -150,7 +150,7 @@ class Annual(commands.GroupCog, name="annual"):
     @commands.command("강제설정")
     async def user_set_command(self, ctx: commands.Context, user: discord.User | discord.Member, annual: str | int):
         ""
-        if (ctx.author.id in [464712715487805442, 809432781604126740] == False):
+        if (not ctx.author.id in [464712715487805442, 809432781604126740]):
             return
         message = await ctx.send(
             embed=discord.Embed(
@@ -176,7 +176,7 @@ class Annual(commands.GroupCog, name="annual"):
 
             for i in range(annual):
                 await self.db.insertUerAnnual(
-                    userId=ctx.author.id,
+                    userId=user.id,
                     annual=setAnnual,
                     annualCnt=1,
                     reason="관리자에 의한 강제 사용"
