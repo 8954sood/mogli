@@ -1,8 +1,10 @@
 import aiosqlite
-from typing import Union, Optional
+from typing import Union, Optional, List
 import datetime
 
-from .model.memberModel import MemberModel
+from .model import MemberModel, AnnualModel
+from .utiles import getStringToDateTime
+
 ANNUAL_START_COUNT = 25
 TABLE_MEMBER = "members"
 TABLE_ANNUAL = "annuals"
@@ -118,6 +120,40 @@ class AnnualManage:
             sum += i["annual_cnt"] # annualCnt
 
         return ANNUAL_START_COUNT-sum
+    
+    async def getUserAnnualAll(self, userId: int, reversed: bool = False, **args) -> List[AnnualModel]:
+        '''
+        유저의 연차 기록을 모두 불러오는 함수입니다.
+        '''
+        
+        await self.makeUser(userId)
+
+
+        query = f'''
+                SELECT * FROM {TABLE_ANNUAL} WHERE user_id=? ORDER BY createdAt {"ASC" if (reversed is False) else "DESC"}
+                '''
+        cursor = await self.db.execute(query, (userId, ))
+        
+        result = await cursor.fetchall()
+        await cursor.close()
+
+        annaulList = []
+        for i in result:
+            annaulList.append(
+                AnnualModel(
+                    id=i["id"],
+                    annual=i["annual"],
+                    annualCnt=i["annual_cnt"],
+                    reason=i["reason"],
+                    userId=i["user_id"],
+                    createdAt=getStringToDateTime(i["createdAt"]),
+                )
+            )
+        
+        return annaulList
+        
+
+
 
         
     async def insertUerAnnual(self, userId: int, annual: str, annualCnt: int, reason: str, **args) -> tuple[bool, Optional[str]]:
@@ -126,7 +162,7 @@ class AnnualManage:
         '''
         await self.makeUser(userId)
 
-        count = await self.getUserAnnual(userId)
+        count = await self.getUserAnnualCount(userId)
         if (count-annualCnt <= 0):
             return False, "현재 연차의 개수보다 많은 양을 사용하려고 시도하였습니다."
         
