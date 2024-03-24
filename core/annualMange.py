@@ -101,7 +101,7 @@ class AnnualManage:
         
         return MemberModel(record["id"], record["name"])
     
-    async def getUserAnnual(self, userId: int, **args) -> int:
+    async def getUserAnnualCount(self, userId: int, **args) -> int:
         '''
         유저의 연차 개수를 얻어오는 함수입니다.
         '''
