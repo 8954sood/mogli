@@ -31,6 +31,9 @@ class Annual(commands.GroupCog, name="annual"):
         return await self.app.fetch_channel(os.environ.get("log"))
     
     async def sendLogChannel(self, category: str, user: discord.User | discord.Member, **args):
+        '''
+        Param category: 연차 
+        '''
         userInfo = await self.db.getUser(user.id)
         if (category == "연차"):
             if user == None:
@@ -160,18 +163,17 @@ class Annual(commands.GroupCog, name="annual"):
                 userId=ctx.author.id,
                 userName=ctx.author.display_name
             )
-            userQuery = await self.db.getUser(
+
+            #db에 유저 생성
+            await self.db.getUser(
                 userId=user.id,
                 userName=user.display_name
             )
-            count = await self.db.getUserAnnualCount(userId=user.id)
-
             setAnnual = "관리자에 의한 강제 사용"
             if isinstance(annual, str):
                 setAnnual = annual
                 annual = len(list(map(int, annual.split(","))))
-            
-            print(annual)
+
             for i in range(annual):
                 await self.db.insertUerAnnual(
                     userId=ctx.author.id,
@@ -186,7 +188,6 @@ class Annual(commands.GroupCog, name="annual"):
                     reason=f"관리자({admin.name})에 의한 강제 사용",
                     annual=setAnnual
                 )
-                print(i)
             await message.edit(
                 content=".",
                 embed=None
