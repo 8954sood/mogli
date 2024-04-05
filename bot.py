@@ -10,6 +10,7 @@ import asyncio
 app = commands.Bot(
     command_prefix="!",
     intents= Intents.all(),
+    help_command=None,
 )
 load_dotenv()
 
