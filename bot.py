@@ -4,7 +4,6 @@ from discord.ext import commands
 
 from dotenv import load_dotenv 
 import os
-import asyncio
 
 
 app = commands.Bot(
@@ -29,10 +28,6 @@ async def on_ready():
     app.tree.copy_global_to(guild=discord.Object(id=1193910645318500463)) 
     await app.tree.sync()
     print("봇 활성화")
-
-@app.tree.command(name="test2")
-async def test2_coomand(interaction: discord.Interaction):
-    await interaction.response.send_message("hihi")
 
 @app.command("reload")
 async def reload(ctx: commands.Context):
