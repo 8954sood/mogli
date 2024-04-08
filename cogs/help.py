@@ -15,7 +15,7 @@ class Help(commands.Cog):
                     !강제설정 @박병준 "3, 4" -> Means 박병준 use annual two count
                     !강제설정 @박병준 2 -> Means 박병준 use annual two count
                     '''
-        }
+        } 
 
     @commands.command("help")
     async def help_command(self, ctx: commands.Context):
