@@ -5,6 +5,10 @@ SETTING GUIDE
 
 ## How to run
 
+**Need a Python 3.8+**
+- aiosqlite
+- discord.py
+
 Setting to 
 ${\textsf{\color{red}.env}}$
 ```env
