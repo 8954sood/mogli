@@ -8,7 +8,6 @@ from typing import Optional
 import datetime
 
 from core.annualMange import AnnualManage
-from core.model.memberModel import MemberModel
  
 class Annual(commands.GroupCog, name="annual"):
     def __init__(self, app: commands.Bot) -> None:
