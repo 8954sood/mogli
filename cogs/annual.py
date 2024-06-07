@@ -8,6 +8,7 @@ from typing import Optional
 import datetime
 
 from core.annualMange import AnnualManage
+from core.utiles import isAdmin
  
 class Annual(commands.GroupCog, name="annual"):
     def __init__(self, app: commands.Bot) -> None:
@@ -52,7 +53,7 @@ class Annual(commands.GroupCog, name="annual"):
                                 '''
                 )
             )
-        
+
 
     @app_commands.command(name="정보")
     async def info_command(self, interaction: discord.Interaction, target: Optional[discord.User | discord.Member]):
@@ -148,8 +149,7 @@ class Annual(commands.GroupCog, name="annual"):
 
     @commands.command("강제설정")
     async def user_set_command(self, ctx: commands.Context, user: discord.User | discord.Member, annual: str | int):
-        ""
-        if (not ctx.author.id in [464712715487805442, 809432781604126740]):
+        if (not isAdmin(ctx.author.id)):
             return
         message = await ctx.send(
             embed=discord.Embed(
